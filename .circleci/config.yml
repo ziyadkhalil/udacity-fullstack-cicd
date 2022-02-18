@@ -15,11 +15,11 @@ orbs:
 executors:
   node_chrome:
     docker:
-      - image: 'cimg/node:17.5-browsers'
+      - image: 'cimg/node:14.17.6-browsers'
     working_directory: ~/project
 jobs:
   frontend-install-packages:
-      executor: node_chrome
+      executor: node/default
       steps:
       - checkout
       - node/install-packages:
