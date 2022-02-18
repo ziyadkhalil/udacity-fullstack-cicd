@@ -56,7 +56,7 @@ workflows:
           npm-run: build
           app-dir: udagram-frontend
           requires:
-            - "Frontend/ Test"
+            - "frontend-test"
           version: "15.1"
           post-steps:
             - aws-s3/copy:
@@ -69,7 +69,7 @@ workflows:
               only:
                 main
       - node/run:
-          name: Backend/ Test
+          name: backend-test
           requires:
             - "backend-install-packages"
           app-dir: udagram-api
@@ -80,7 +80,7 @@ workflows:
           npm-run: build
           app-dir: udagram-api
           requires:
-            - "Backend/ Test"
+            - "backend-test"
           version: "15.1"
           post-steps:
             - eb/setup
