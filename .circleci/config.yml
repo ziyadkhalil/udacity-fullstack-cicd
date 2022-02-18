@@ -16,6 +16,7 @@ executors:
   node_chrome:
     docker:
       - image: 'cimg/node:17.5-browsers'
+    working_directory: ~/project
 jobs:
   frontend-install-packages:
       executor: node_chrome
@@ -23,6 +24,10 @@ jobs:
       - checkout
       - node/install-packages:
           app-dir: udagram-frontend
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
   frontend-test:
     executor: node_chrome
     steps:
@@ -33,17 +38,24 @@ jobs:
             google-chrome --version
             chromedriver --version
           name: Check install
+      - attach_workspace:
+          at: ~/
       - run:
-          command: cd udagram-frontend && npm run test && cd ..
+          command: cd udagram-frontend && npm run test
+    
   frontend-build:
-    executor: node_chrome
+    executor: node/default
     steps:
+      - attach_workspace:
+          at: ~/
       - run:
           command:
-            cd udagram-frontend && npm run build && cd ..
+            cd udagram-frontend && npm run build
   frontend-deploy:
-    executor: node_chrome
+    executor: node/default
     steps:
+      - attach_workspace:
+          at: ~/
       - aws-s3/copy:
           from: udagram-frontend/www/
           to: s3://udagram-fe
