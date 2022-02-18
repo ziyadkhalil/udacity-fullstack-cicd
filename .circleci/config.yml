@@ -18,7 +18,7 @@ workflows:
             branches:
               only:
                 main
-          npm-run: install
+          npm-run: ci
           app-dir: udagram-frontend
           version: "15.1"
       - node/run:
@@ -42,7 +42,7 @@ workflows:
                 arguments: --recursive
       - node/run:
           name: Backend/ Install packages
-          npm-run: install
+          npm-run: ci
           app-dir: udagram-api
           version: "15.1"
           filters:
