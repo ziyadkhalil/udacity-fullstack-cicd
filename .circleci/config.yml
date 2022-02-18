@@ -12,16 +12,19 @@ orbs:
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 
+executors:
+  node_chrome:
+    docker:
+      - image: 'cimg/node:17.5-browsers'
 jobs:
   frontend-install-packages:
-    executor: node/default
-    steps:
+      executor: node_chrome
+      steps:
       - checkout
       - node/install-packages:
           app-dir: udagram-frontend
   frontend-test:
-    docker:
-      - image: 'cimg/node:17.5-browsers'
+    executor: node_chrome
     steps:
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
@@ -30,9 +33,21 @@ jobs:
             google-chrome --version
             chromedriver --version
           name: Check install
-      -  run:
-          command: cd udagram-frontend && npm run test
-            
+      - run:
+          command: cd udagram-frontend && npm run test && cd ..
+  frontend-build:
+    executor: node_chrome
+    steps:
+      - run:
+          command:
+            cd udagram-frontend && npm run build && cd ..
+  frontend-deploy:
+    executor: node_chrome
+    steps:
+      - aws-s3/copy:
+          from: udagram-frontend/www/
+          to: s3://udagram-fe
+          arguments: --recursive
   backend-install-packages:
     executor: node/default
     steps:
@@ -51,18 +66,13 @@ workflows:
       - frontend-test:
           requires:
             - "frontend-install-packages"
-      - node/run:
-          name: Frontend/ Build and Deploy
-          npm-run: build
-          app-dir: udagram-frontend
+      - frontend-build:
           requires:
             - "frontend-test"
-          version: "15.1"
-          post-steps:
-            - aws-s3/copy:
-                from: udagram-frontend/www/
-                to: s3://udagram-fe
-                arguments: --recursive
+      - frontend-deploy:
+          requires:
+            - "frontend-build"
+            
       - backend-install-packages:
           filters:
             branches:
