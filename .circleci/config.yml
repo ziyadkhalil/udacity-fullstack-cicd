@@ -7,6 +7,8 @@ orbs:
   node: circleci/node@5
 # The S3 orb will setup the aws-cli and quickly copy or sync anything to s3.
   aws-s3: circleci/aws-s3@2.0
+  # Browser tools for chrome
+  browser-tools: circleci/browser-tools@1.2.4
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 
@@ -17,6 +19,20 @@ jobs:
       - checkout
       - node/install-packages:
           app-dir: udagram-frontend
+  frontend-test:
+    docker:
+      - image: 'cimg/node:13.12-browsers'
+    steps:
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
+      - run:
+          command: |
+            google-chrome --version
+            chromedriver --version
+          name: Check install
+      -  run:
+          command: cd udagram-frontend && npm run test
+            
   backend-install-packages:
     executor: node/default
     steps:
@@ -32,13 +48,9 @@ workflows:
             branches:
               only:
                 main
-      - node/run:
-          name: Frontend/ Test
+      - frontend-test:
           requires:
             - "frontend-install-packages"
-          app-dir: udagram-frontend
-          npm-run: test
-          version: "15.1"
       - node/run:
           name: Frontend/ Build and Deploy
           npm-run: build
