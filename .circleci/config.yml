@@ -16,7 +16,7 @@ executors:
   node_chrome:
     docker:
       - image: 'cimg/node:14.17.6-browsers'
-    working_directory: ~/project
+    working_directory: ~/udagram-frontend
 jobs:
   frontend-install-packages:
       executor: node/default
@@ -25,9 +25,9 @@ jobs:
       - node/install-packages:
           app-dir: udagram-frontend
       - persist_to_workspace:
-          root: ~/
+          root: ~/project
           paths:
-            - project
+            - udagram-frontend
   frontend-test:
     executor: node_chrome
     steps:
@@ -39,28 +39,36 @@ jobs:
             chromedriver --version
           name: Check install
       - attach_workspace:
-          at: ~/
+          at: ~/udagram-frontend
+      - run: 
+          command: ls -all 
       - run:
-          command: cd udagram-frontend && npm run test   
+          command: npm run test   
   frontend-build:
     executor: node/default
+    working_directory: ~/udagram-frontend
     steps:
       - attach_workspace:
           at: ~/
+      - run: 
+          command: ls -all 
       - run:
           command:
-            cd udagram-frontend && npm run build
+            npm run build
       - persist_to_workspace:
-          root: ~/project
+          root: ~/
           paths:
             - udagram-frontend
   frontend-deploy:
     executor: node/default
+    working_directory: ~/udagram-frontend
     steps:
       - attach_workspace:
           at: ~/
+      - run: 
+          command: ls -all 
       - aws-s3/copy:
-          from: udagram-frontend/www/
+          from: www/
           to: s3://udagram-fe
           arguments: --recursive
  
@@ -71,34 +79,42 @@ jobs:
       - node/install-packages:
           app-dir: udagram-api
       - persist_to_workspace:
-          root: ~/
+          root: ~/project
           paths:
-            - project
+            - udagram-backend
   backend-test:
     executor: node/default
+    working_directory: ~/udagram-api
     steps:
       - attach_workspace:
           at: ~/
+      - run: 
+          command: ls -all 
       - run:
-          command: |
-            cd udagram-api && npm run test
+          command: npm run test
   backend-build:
     executor: node/default
+    working_directory: ~/udagram-api
     steps:
       - attach_workspace:
           at: ~/
+      - run: 
+          command: ls -all 
       - run:
           command:
-            cd udagram-api && npm run build
+            npm run build
       - persist_to_workspace:
           root: ~/
           paths:
-            - project
+            - udagram-api
   backend-deploy:
     executor: node/default
+    working_directory: ~/udagram-api
     steps:
       - attach_workspace:
           at: ~/
+      - run: 
+          command: ls -all 
       - eb/setup
       - run:
           command: |
