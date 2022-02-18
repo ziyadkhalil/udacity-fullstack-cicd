@@ -30,7 +30,6 @@ jobs:
             - udagram-frontend
   frontend-test:
     executor: node_chrome
-    working_directory: ~/udagram-frontend
     steps:
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
@@ -42,7 +41,7 @@ jobs:
       - attach_workspace:
           at: ~/udagram-frontend
       - run: 
-          command: ls -all 
+          command: pwd && ls -all 
       - run:
           command: npm run test   
   frontend-build:
