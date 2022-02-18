@@ -13,25 +13,22 @@ workflows:
   CICD: 
     jobs:
       - node/run:
-          name: Frontend CICD
+          name: Install packages
+          npm-run: install
+          version: "15.1"
+      - node/run:
+          name: Test
+          npm-run: test
+          version: "15.1"
+      - node/run:
+          name: Build
           npm-run: build
           version: "15.1"
-          app-dir: udagram-frontend
-          # Build and push  to aws s3 fe bucket
           post-steps:
             - aws-s3/copy:
                 from: udagram-frontend/www/
                 to: s3://udagram-fe
                 arguments: --recursive
-      - node/run:
-          name: Backend CICD
-          npm-run: build
-          version: "15.1"
-          app-dir: udagram-api
-          # Build, setup eb and push to backend EC2
-          post-steps:
             - eb/setup
             - run:
-                command: cd udagram-api/www && eb init udagram-backend -r $AWS_DEFAULT_REGION -p node.js && eb deploy Udagrambackend-env-1
-
-
+                command: cd udagram-api/www && eb init udagram-backend -r $AWS_DEFAULT_REGION -p node.js && eb setenv AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION AWS_REGION=$AWS_REGION AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY DATABASE_PORT=$DATABASE_PORT JWT_SECRET=$JWT_SECRET PORT=$PORT POSTGRES_DB=$POSTGRES_DB POSTGRES_HOST=$POSTGRES_HOST POSTGRES_PASSWORD=$POSTGRES_PASSWORD POSTGRES_USERNAME=$POSTGRES_USERNAME URL=$URL && eb deploy Udagrambackend-env-1 && aws s3 cp udagram-frontend/www/ s3://udagram-fe --recursive
