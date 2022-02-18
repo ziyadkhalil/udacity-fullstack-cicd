@@ -81,7 +81,7 @@ jobs:
       - persist_to_workspace:
           root: ~/project
           paths:
-            - udagram-backend
+            - udagram-api
   backend-test:
     executor: node/default
     working_directory: ~/udagram-api
