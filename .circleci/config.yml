@@ -9,22 +9,33 @@ orbs:
   aws-s3: circleci/aws-s3@2.0
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+
+jobs:
+  frontend-install-packages:
+    executor: node/default
+    steps:
+      - checkout
+      - node/install-packages:
+          app-dir: udagram-frontend
+  backend-install-packages:
+    executor: node/default
+    steps:
+      - checkout
+      - node/install-packages:
+          app-dir: udagram-api
+          
 workflows:
   CICD: 
     jobs:
-      - Frontend/ Install packages:
+      - frontend-install-packages:
           filters:
             branches:
               only:
                 main
-          steps:
-            - checkout
-            - node/install-pacakages:
-              app-dir: udagram-frontend
       - node/run:
           name: Frontend/ Test
           requires:
-            - "Frontend/ Install packages"
+            - "frontend-install-packages"
           app-dir: udagram-frontend
           npm-run: test
           version: "15.1"
@@ -40,19 +51,15 @@ workflows:
                 from: udagram-frontend/www/
                 to: s3://udagram-fe
                 arguments: --recursive
-      - Backend/ Install packages:
+      - backend-install-packages:
           filters:
             branches:
               only:
                 main
-          steps:
-            - checkout
-            - node/install-pacakages:
-              app-dir: udagram-api
       - node/run:
           name: Backend/ Test
           requires:
-            - "Backend/ Install packages"
+            - "backend-install-packages"
           app-dir: udagram-api
           npm-run: test
           version: "15.1"
