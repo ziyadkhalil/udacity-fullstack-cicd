@@ -21,7 +21,7 @@ jobs:
           app-dir: udagram-frontend
   frontend-test:
     docker:
-      - image: 'cimg/node:13.12-browsers'
+      - image: 'cimg/node:17.5-browsers'
     steps:
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
