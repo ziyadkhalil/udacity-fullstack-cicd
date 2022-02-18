@@ -41,8 +41,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          command: cd udagram-frontend && npm run test
-    
+          command: cd udagram-frontend && npm run test   
   frontend-build:
     executor: node/default
     steps:
@@ -51,6 +50,10 @@ jobs:
       - run:
           command:
             cd udagram-frontend && npm run build
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - udagram-frontend/www
   frontend-deploy:
     executor: node/default
     steps:
@@ -60,12 +63,46 @@ jobs:
           from: udagram-frontend/www/
           to: s3://udagram-fe
           arguments: --recursive
+ 
   backend-install-packages:
     executor: node/default
     steps:
       - checkout
       - node/install-packages:
           app-dir: udagram-api
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - udagram-api/node_modules
+  backend-test:
+    executor: node/default
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          command: |
+            cd udagram-api && npm run test
+  backend-build:
+    executor: node/default
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          command:
+            cd udagram-api && npm run build
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - udagram-api/www
+  backend-deploy:
+    executor: node/default
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          command: |
+            cd udagram-api/www && eb init udagram-backend -r $AWS_DEFAULT_REGION -p node.js && eb setenv AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION AWS_REGION=$AWS_REGION AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY DATABASE_PORT=$DATABASE_PORT JWT_SECRET=$JWT_SECRET PORT=$PORT POSTGRES_DB=$POSTGRES_DB POSTGRES_HOST=$POSTGRES_HOST POSTGRES_PASSWORD=$POSTGRES_PASSWORD POSTGRES_USERNAME=$POSTGRES_USERNAME URL=$URL && eb deploy Udagrambackend-env-1
+      
           
 workflows:
   CICD: 
@@ -90,21 +127,12 @@ workflows:
             branches:
               only:
                 main
-      - node/run:
-          name: backend-test
+      - backend-test:
           requires:
             - "backend-install-packages"
-          app-dir: udagram-api
-          npm-run: test
-          version: "15.1"
-      - node/run:
-          name: Backend/ Build and Deploy
-          npm-run: build
-          app-dir: udagram-api
+      - backend-build:
           requires:
             - "backend-test"
-          version: "15.1"
-          post-steps:
-            - eb/setup
-            - run:
-                command: cd udagram-api/www && eb init udagram-backend -r $AWS_DEFAULT_REGION -p node.js && eb setenv AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION AWS_REGION=$AWS_REGION AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY DATABASE_PORT=$DATABASE_PORT JWT_SECRET=$JWT_SECRET PORT=$PORT POSTGRES_DB=$POSTGRES_DB POSTGRES_HOST=$POSTGRES_HOST POSTGRES_PASSWORD=$POSTGRES_PASSWORD POSTGRES_USERNAME=$POSTGRES_USERNAME URL=$URL && eb deploy Udagrambackend-env-1
+      - backend-deploy:
+          requires:
+            - "backend-build"
