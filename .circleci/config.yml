@@ -12,15 +12,15 @@ orbs:
 workflows:
   CICD: 
     jobs:
-      - node/run:
-          name: Frontend/ Install packages
+      - Frontend/ Install packages:
           filters:
             branches:
               only:
                 main
-          npm-run: ci
-          app-dir: udagram-frontend
-          version: "15.1"
+          steps:
+            - checkout
+            - node/install-pacakages:
+              app-dir: udagram-frontend
       - node/run:
           name: Frontend/ Test
           requires:
@@ -40,15 +40,15 @@ workflows:
                 from: udagram-frontend/www/
                 to: s3://udagram-fe
                 arguments: --recursive
-      - node/run:
-          name: Backend/ Install packages
-          npm-run: ci
-          app-dir: udagram-api
-          version: "15.1"
+      - Backend/ Install packages:
           filters:
             branches:
               only:
                 main
+          steps:
+            - checkout
+            - node/install-pacakages:
+              app-dir: udagram-api
       - node/run:
           name: Backend/ Test
           requires:
