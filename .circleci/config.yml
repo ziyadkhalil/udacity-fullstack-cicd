@@ -43,7 +43,7 @@ workflows:
       - node/run:
           name: Backend/ Install packages
           npm-run: install
-          app-dir: udagram-backend
+          app-dir: udagram-api
           version: "15.1"
           filters:
             branches:
@@ -53,13 +53,13 @@ workflows:
           name: Backend/ Test
           requires:
             - "Backend/ Install packages"
-          app-dir: udagram-backend
+          app-dir: udagram-api
           npm-run: test
           version: "15.1"
       - node/run:
           name: Backend/ Build and Deploy
           npm-run: build
-          app-dir: udagram-backend
+          app-dir: udagram-api
           requires:
             - "Backend/ Test"
           version: "15.1"
